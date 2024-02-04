@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template for PostgreSQL RDS in a VPC, Lambda function, and SQS queue
+
+Resources:
+  VPCproject01:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: "Project"
+          Value: "project-01"
+        - Key: "Name"
+          Value: "vpc-project-01"
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCproject01
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: us-east-1a
+      Tags:
+        - Key: "Project"
+          Value: "project-01"
+        - Key: "Name"
+          Value: "sn-public"
+
+  DBPrivateSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCproject01
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: us-east-1b
+      Tags:
+        - Key: "Project"
+          Value: "project-01"
+        - Key: "Name"
+          Value: "sn-db-private-01"
+
+  DBPrivateSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCproject01
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: us-east-1a
+      Tags:
+        - Key: "Project"
+          Value: "project-01"
+        - Key: "Name"
+          Value: "sn-db-private-02"
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: PostgreSQL Subnet Group
+      SubnetIds:
+        - !Ref DBPrivateSubnet01
+        - !Ref DBPrivateSubnet02
+      Tags:
+        - Key: "Project"
+          Value: "project-01"
+        - Key: "Name"
+          Value: "sn-db-grp"
+  
+  MyDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: rds-project-01
+      AllocatedStorage: 20
+      DBInstanceClass: db.t3.micro
+      Engine: postgres
+      MasterUsername: adminuser
+      MasterUserPassword: adminpass
+      VPCSecurityGroups:
+        - !Ref DBSecurityGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      Tags:
+        - Key: "Project"
+          Value: "project-01"
+        - Key: "Name"
+          Value: "rds-project-01"
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for RDS PostgreSQL
+      VpcId: !Ref VPCproject01
+      Tags:
+        - Key: "Project"
+          Value: "project-01"
+        - Key: "Name"
+          Value: "sg-database"
+
+  MySQSQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: MySQSQueue
+      Tags:
+        - Key: "Project"
+          Value: "project-01"
+        - Key: "Name"
+          Value: "sqs-project-01"
+
+Outputs:
+  RDSAddress:
+    Description: Address of the RDS instance
+    Value: !GetAtt MyDB.Endpoint.Address
+  SQSQueueURL:
+    Description: URL of the SQS Queue
+    Value: !Ref MySQSQueue

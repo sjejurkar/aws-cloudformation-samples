@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template for PostgreSQL RDS in a VPC, Lambda function, and SQS queue
+
+Resources:
+  VPCproject01:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: "Project"
+          Value: "project-01"
+        - Key: "Name"
+          Value: "vpc-project-01"

@@ -1,0 +1,1 @@
+setting up a PostgreSQL RDS instance in a private subnet, a Lambda function within a VPC to access this database, and an SQS queue for message reception
